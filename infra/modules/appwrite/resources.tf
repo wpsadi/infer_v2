@@ -12,6 +12,7 @@ resource "appwrite_function" "inference" {
   timeout               = 180
   enabled               = true
   logging               = true
+  deployment_retention = 7
 }
 
 
