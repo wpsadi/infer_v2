@@ -6,6 +6,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: production
     env:
       APPWRITE_ENDPOINT: ${{ secrets.APPWRITE_ENDPOINT }}
       APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}

@@ -8,5 +8,6 @@ on:
 jobs:
   hello:
     runs-on: ubuntu-latest
+    environment: production
     steps:
       - run: echo "Hello World"
