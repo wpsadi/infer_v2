@@ -21,6 +21,7 @@ jobs:
       # checkout (or check the directory itself) override it with `.`
       # Stop before doing anything else if the HCP Terraform settings are missing
       - name: Check HCP Terraform variables
+        working-directory: .
         run: |
           missing=()
           for var in TF_CLOUD_ORGANIZATION TF_WORKSPACE TF_TOKEN_app_terraform_io; do
