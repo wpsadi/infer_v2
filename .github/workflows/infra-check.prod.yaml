@@ -6,8 +6,75 @@ on:
     - cron: "0 */6 * * *"
 
 jobs:
-  hello:
+  check:
     runs-on: ubuntu-latest
     environment: production
+    defaults:
+      run:
+        working-directory: infra/environments/prod
+    env:
+      TF_CLOUD_ORGANIZATION: ${{ vars.TF_CLOUD_ORGANIZATION }}
+      TF_WORKSPACE: ${{ vars.TF_WORKSPACE }}
+      TF_TOKEN_app_terraform_io: ${{ secrets.TF_TOKEN }}
     steps:
-      - run: echo "Hello World"
+      # Every run step defaults to infra/environments/prod; steps that run before
+      # checkout (or check the directory itself) override it with `.`
+      # Stop before doing anything else if the HCP Terraform settings are missing
+      - name: Check HCP Terraform variables
+        run: |
+          missing=()
+          for var in TF_CLOUD_ORGANIZATION TF_WORKSPACE TF_TOKEN_app_terraform_io; do
+            [ -n "${!var}" ] || missing+=("$var")
+          done
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "::error::Missing required secrets/variables: ${missing[*]}"
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check infra directory exists
+        run: |
+          if [ ! -d infra/environments/prod ]; then
+            echo "::error::Directory infra/environments/prod does not exist"
+            exit 1
+          fi
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Setup
+        run: ./scripts/setup.sh
+
+      # Variables come straight from GitHub secrets/vars; the file is gitignored (*.tfvars)
+      - name: Create tfvars
+        run: |
+          umask 077
+          cat > secrets.auto.tfvars << 'EOT'
+          APPWRITE_ENDPOINT        = "${{ vars.APPWRITE_ENDPOINT }}"
+          APPWRITE_PROJECT_ID      = "${{ vars.APPWRITE_PROJECT_ID }}"
+          APPWRITE_API_KEY         = "${{ secrets.APPWRITE_API_KEY }}"
+          APPWRITE_FUNCTIONS_TOKEN = "${{ secrets.APPWRITE_FUNCTIONS_TOKEN }}"
+          EOT
+
+      - name: Terraform init
+        run: terraform init -input=false
+
+      # plan -detailed-exitcode: 0 = in sync, 1 = error, 2 = drift/pending changes
+      - name: Terraform plan (drift check)
+        run: |
+          set +e
+          terraform plan -input=false -lock=false -detailed-exitcode
+          code=$?
+          set -e
+          if [ "$code" -eq 2 ]; then
+            echo "::error::Infra mismatch: Live Resources differ from the Terraform config"
+            exit 1
+          elif [ "$code" -ne 0 ]; then
+            echo "::error::terraform plan failed (exit code $code)"
+            exit "$code"
+          fi
+          echo "Infra is in sync with the Terraform config"

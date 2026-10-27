@@ -7,6 +7,9 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     environment: production
+    defaults:
+      run:
+        working-directory: functions/inference
     env:
       APPWRITE_ENDPOINT: ${{ vars.APPWRITE_ENDPOINT }}
       APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
@@ -14,6 +17,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      # Runs from the repo root; every other run step defaults to functions/inference
+      - name: Check inference function directory exists
+        working-directory: .
+        run: |
+          if [ ! -d functions/inference ]; then
+            echo "::error::Directory functions/inference does not exist"
+            exit 1
+          fi
 
       - name: Install Node.js
         uses: actions/setup-node@v4
@@ -46,3 +58,12 @@ jobs:
         run: |
           appwrite --version
           appwrite client --debug
+
+      - name: Create inference function deployment
+        run: |
+          appwrite functions create-deployment \
+            --function-id inference-function \
+            --code . \
+            --entrypoint src/main.ts \
+            --commands "bun install" \
+            --activate
