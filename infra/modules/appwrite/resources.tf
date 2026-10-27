@@ -9,7 +9,7 @@ resource "appwrite_function" "inference" {
   scopes                = ["users.read"]
   execute               = ["any"]
   events                = []
-  timeout               = 15
+  timeout               = 180
   enabled               = true
   logging               = true
 }

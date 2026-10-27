@@ -5,13 +5,17 @@
   "main": "src/main.ts",
   "type": "module",
   "scripts": {
+    "dev": "bun run --hot src/server.ts",
+    "start": "bun run src/server.ts",
     "format": "prettier --write ."
   },
   "dependencies": {
+    "hono": "^4.13.13",
     "node-appwrite": "^20.2.1"
   },
   "devDependencies": {
+    "@types/bun": "^1.1.16",
     "prettier": "^3.0.0",
-    "@types/bun": "^1.1.16"
+    "typescript": "^7.0.2"
   }
 }
