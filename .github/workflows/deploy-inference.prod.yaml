@@ -2,6 +2,11 @@ name: Deploy Prod Inference
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "functions/inference/**"
 
 jobs:
   deploy:
