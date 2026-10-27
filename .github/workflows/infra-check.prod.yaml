@@ -1,4 +1,4 @@
-name: infra-check
+name: Infra Check Prod
 
 on:
   workflow_dispatch:
