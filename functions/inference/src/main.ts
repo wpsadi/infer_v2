@@ -7,7 +7,9 @@ export default async ({ req, res, error }: any) => {
   try {
     const response = await app.fetch(req);
 
-    return response;
+    return res.json({
+      status: response.status,
+    });
   } catch (e) {
     error(String(e));
     return res.json({ error: "Internal Server Error" }, 500);
