@@ -1,0 +1,47 @@
+name: Deploy Prod Inference
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      APPWRITE_ENDPOINT: ${{ secrets.APPWRITE_ENDPOINT }}
+      APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
+      APPWRITE_PROJECT_ID: ${{ secrets.APPWRITE_PROJECT_ID }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Appwrite CLI
+        run: npm install -g appwrite-cli
+
+      - name: Appwrite Essential Secrets
+        run: |
+          missing=()
+          for var in APPWRITE_ENDPOINT APPWRITE_API_KEY APPWRITE_PROJECT_ID; do
+            [ -n "${!var}" ] || missing+=("$var")
+          done
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "::error::Missing required secrets: ${missing[*]}"
+            exit 1
+          fi
+
+      # Saved to the CLI's global prefs once; later steps need no flags.
+      - name: Configure Appwrite CLI
+        run: |
+          appwrite client \
+            --endpoint "$APPWRITE_ENDPOINT" \
+            --project-id "$APPWRITE_PROJECT_ID" \
+            --key "$APPWRITE_API_KEY"
+
+      - name: Verify Appwrite CLI is usable
+        run: |
+          appwrite --version
+          appwrite client --debug
