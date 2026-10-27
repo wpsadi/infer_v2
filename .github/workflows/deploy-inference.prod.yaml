@@ -8,9 +8,9 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     env:
-      APPWRITE_ENDPOINT: ${{ secrets.APPWRITE_ENDPOINT }}
+      APPWRITE_ENDPOINT: ${{ vars.APPWRITE_ENDPOINT }}
       APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
-      APPWRITE_PROJECT_ID: ${{ secrets.APPWRITE_PROJECT_ID }}
+      APPWRITE_PROJECT_ID: ${{ vars.APPWRITE_PROJECT_ID }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -30,7 +30,7 @@ jobs:
             [ -n "${!var}" ] || missing+=("$var")
           done
           if [ ${#missing[@]} -gt 0 ]; then
-            echo "::error::Missing required secrets: ${missing[*]}"
+            echo "::error::Missing required secrets/variables: ${missing[*]}"
             exit 1
           fi
 
