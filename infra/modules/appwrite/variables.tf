@@ -19,3 +19,9 @@ variable "appwrite_functions_token" {
   type        = string
   sensitive   = true
 }
+
+variable "function_domain" {
+  description = "Domain for the inference function. Defaults to <function-id>-<project-id>.<region>.appwrite.run"
+  type        = string
+  default     = null
+}

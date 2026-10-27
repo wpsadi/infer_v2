@@ -2,7 +2,7 @@ resource "appwrite_function" "inference" {
   id                    = "inference-function"
   name                  = "inference"
   runtime               = "bun-1.4"
-  entrypoint            = "src/main.ts"
+  entrypoint            = "src/appwrite.ts"
   commands              = "bun install"
   build_specification   = "s-2vcpu-2gb"
   runtime_specification = "s-0.5vcpu-512mb"
@@ -41,4 +41,20 @@ resource "terraform_data" "inference_waf" {
       FUNCTION_ID              = appwrite_function.inference.id
     }
   }
+}
+
+locals {
+  # fra.cloud.appwrite.io -> fra
+  appwrite_region = split(".", replace(var.appwrite_endpoint, "https://", ""))[0]
+  function_domain = coalesce(
+    var.function_domain,
+    "${appwrite_function.inference.id}-${var.appwrite_project_id}.${local.appwrite_region}.appwrite.run"
+  )
+}
+
+# Public domain that serves the function's active deployment
+resource "appwrite_proxy_rule" "inference" {
+  type        = "function"
+  resource_id = appwrite_function.inference.id
+  domain      = local.function_domain
 }
