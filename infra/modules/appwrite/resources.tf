@@ -2,7 +2,7 @@ resource "appwrite_function" "inference" {
   id                    = "inference-function"
   name                  = "inference"
   runtime               = "bun-1.4"
-  entrypoint            = "src/appwrite.ts"
+  entrypoint            = "src/main.ts"
   commands              = "bun install"
   build_specification   = "s-2vcpu-2gb"
   runtime_specification = "s-0.5vcpu-512mb"
